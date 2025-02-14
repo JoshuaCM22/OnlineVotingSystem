@@ -1,0 +1,126 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Online Voting System</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+    <link rel="stylesheet" href="~/lib/toastr/toastr.min.css" />
+
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/5.0.11/signalr.min.js"></script>
+
+
+</head>
+<body>
+
+    @{
+        string userRole = "";
+        if (User.IsInRole("Admin"))
+        {
+            userRole = "Admin";
+        }
+        else
+        {
+            userRole = "Voter";
+        }
+    }
+
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+            <div class="container">
+                @if (User.IsInRole("Admin"))
+                {
+                    <a class="navbar-brand" asp-area="" asp-controller="Admin" asp-action="Dashboard">Online Voting System</a>
+                }
+                else
+                {
+                    <a class="navbar-brand" asp-area="" asp-controller="Voter" asp-action="ElectionList">Online Voting System</a>
+                }
+
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse d-sm-inline-flex flex-sm-row-reverse" id="navbarNav">
+                    <ul class="navbar-nav">
+                        @if (User.Identity.IsAuthenticated)
+                        {
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle text-dark" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    Username: @User.Identity.Name
+                                </a>
+                                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
+
+                                    @if (User.IsInRole("Admin"))
+                                    {
+                                        <a class="dropdown-item" asp-controller="Admin" asp-action="Dashboard">Dashboard</a>
+                                        <a class="dropdown-item" asp-controller="Admin" asp-action="ElectionList">Election Management</a>
+                                        <a class="dropdown-item" asp-controller="Admin" asp-action="CandidateList">Candidate Management</a>
+                                    }
+
+                                    <a class="dropdown-item" asp-controller="Voter" asp-action="ElectionList">Vote in an Active Election</a>
+                                    <a class="dropdown-item" asp-controller="Voter" asp-action="YourVotingHistory">Your Voting History</a>
+                                    <a class="dropdown-item" asp-controller="Result" asp-action="ElectionList">View Election Results</a>
+                                    <div class="dropdown-divider"></div>
+                                    <form asp-controller="Account" asp-action="Logout" method="post">
+                                        <button type="submit" class="dropdown-item"><i class="fa fa-sign-out-alt"></i> Logout</button>
+                                    </form>
+                                </div>
+                            </li>
+                            <li class="nav-item">                               
+                                <a class="nav-link text-dark" asp-controller="Account" asp-action="Login">User role: @userRole</a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Account" asp-action="Login"><i class="fa fa-sign-in-alt"></i> Login</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Account" asp-action="Register"><i class="fa fa-user-plus"></i> Register</a>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+
+            <span id="successMessage" class="d-none" style="display:none">@TempData["successMessage"]</span>
+            <span id="errorMessage" class="d-none" style="display:none">@TempData["errorMessage"]</span>
+            <span id="infoMessage" class="d-none" style="display:none">@TempData["infoMessage"]</span>
+            <span id="warningMessage" class="d-none" style="display:none">@TempData["warningMessage"]</span>
+        </main>
+    </div>
+
+    <footer class="border-top footer text-muted">
+        <div class="container">
+            &copy; 2025 - Online Voting System
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/lib/toastr/toastr.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <!-- Fix for Dropdowns Not Working in Bootstrap 4 -->
+    <script>
+        $(document).ready(function () {
+            $('.dropdown-toggle').dropdown();
+        });
+    </script>
+
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,62 @@
+﻿
+@{
+    ViewData["Title"] = "Vote in an Active Election";
+}
+
+
+@model IEnumerable<OnlineVotingSystem.Models.ViewModels.ElectionViewModel>
+
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <h2 class="fw-bold">Vote in an Active Election (@Model.Count())</h2>
+    </div>
+    <br>
+
+    <div class="table-responsive">
+        <table class="table table-hover table-bordered text-center align-middle">
+            <thead style="background-color: #000; color: #fff;">
+                <tr>
+                    <th style="width: 13%;">Election ID</th>
+                    <th>Election Name</th>
+                    <th style="width: 20%;">Start Date Time</th>
+                    <th style="width: 20%;">End Date Time</th>
+                    <th style="width: 20%;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    @foreach (var election in Model)
+                    {
+                        <tr>
+                            <td>@election.ID</td>
+                            <td>@election.Name</td>
+                            <td>@election.StartDateTime.ToString("MMM dd, yyyy / hh:mm tt")</td>
+                            <td>@election.EndDateTime.ToString("MMM dd, yyyy / hh:mm tt")</td>
+                            @if (!election.IsVoted)
+                            {
+                                <td>
+                                    <a href="@Url.Action("SetElectionIDSession", "Voter", new { id = election.ID })" class="btn btn-primary btn-md">Vote in this Election</a>
+                                </td>
+                            }
+                            else
+                            {
+                                <td style="width: 27%;">
+                                    <a href="@Url.Action("YourVotingHistory", "Voter", new { electionId = election.ID })" class="btn btn-success btn-md">You already voted. View Your Vote</a>
+                                </td>
+                            }
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="7" class="text-center fw-bold text-muted">No Records Found</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+<br>

@@ -1,0 +1,45 @@
+﻿@{
+    ViewData["Title"] = "Dashboard";
+}
+
+@model OnlineVotingSystem.Models.ViewModels.Admin.DashboardViewModel
+
+<h2 class="mb-4">Dashboard</h2>
+
+<div class="row">
+    <!-- Total Elections -->
+    <div class="col-md-4">
+        <div class="card text-white bg-info shadow-lg">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-calendar-alt"></i> Total Elections
+                </h5>
+                <h3 class="display-4">@Model.TotalElections</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Candidates -->
+    <div class="col-md-4">
+        <div class="card text-white bg-success shadow-lg">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-user-tie"></i> Total Candidates
+                </h5>
+                <h3 class="display-4">@Model.TotalCandidates</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Registered Voters -->
+    <div class="col-md-4">
+        <div class="card text-white bg-warning shadow-lg">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-users"></i> Total Voters
+                </h5>
+                <h3 class="display-4">@Model.TotalVoters</h3>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,77 @@
+﻿
+@{
+    ViewData["Title"] = "Vote in this election";
+}
+
+
+@model IEnumerable<OnlineVotingSystem.Models.ViewModels.CandidateViewModel>
+
+<a href="@Url.Action("election-list", "voter")" class="btn btn-primary btn-md me-2">Back</a>
+
+
+<div class="container mt-4">
+    <div class="text-center">
+        <h2 class="fw-bold">Election Name: @ViewBag.ElectionName</h2>
+    </div>
+    <br>
+    <h4>Total Candidates (@Model.Count())</h4>
+
+    <div class="table-responsive">
+        <table class="table table-hover table-bordered text-center align-middle">
+            <thead style="background-color: #000; color: #fff;">
+                <tr>
+                    <th style="width: 13%;">Candidate ID</th>
+                    <th>Candidate Name</th>
+                    <th>Description</th>
+                    <th style="width: 20%;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    @foreach (var candidate in Model)
+                    {
+                        <tr>
+                            <td>@candidate.ID</td>
+                            <td>@candidate.Name</td>
+                            <td>@candidate.Description</td>
+                            <td>
+                                <form asp-action="VoteCandidate" asp-controller="Voter" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@($"{candidate.ElectionID};{candidate.ID}")" />
+                                    <button type="button" class="btn btn-primary btn-md" onclick="confirmVote(this, '@candidate.Name')">Vote this candidate</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="7" class="text-center fw-bold text-muted">No Records Found</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+<br>
+
+
+<script>
+    function confirmVote(button, candidateName) {
+        Swal.fire({
+            title: "Vote Confirmation",
+            text: "Are you sure you want to vote for this candidate: " + candidateName + "?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes",
+            cancelButtonText: "No"
+        }).then((result) => {
+            if (result.isConfirmed) button.closest("form").submit();
+        });
+    }
+
+</script>

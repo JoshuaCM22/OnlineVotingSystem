@@ -1,0 +1,71 @@
+﻿
+@{
+    ViewData["Title"] = "Candidate List";
+}
+
+
+@model IEnumerable<OnlineVotingSystem.Models.ViewModels.ResultViewModel>
+
+<a href="@Url.Action("election-list", "result")" class="btn btn-primary btn-md me-2">Back</a>
+
+<div class="container mt-4">
+    <div class="text-center">
+        <h2 class="fw-bold">Election Name: @ViewBag.ElectionName</h2>
+    </div>
+    <br>
+    <h4>Total Candidates (@Model.Count())</h4>
+    <div class="table-responsive">
+        <table class="table table-hover table-bordered text-center align-middle">
+            <thead style="background-color: #000; color: #fff;">
+                <tr>
+                    <th style="width: 13%;">Candidate ID</th>
+                    <th>Candidate Name</th>
+                    <th>Description</th>
+                    <th>Total Votes</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    @foreach (var candidate in Model)
+                    {
+                        <tr>
+                            <td>@candidate.CandidateID</td>
+                            <td>@candidate.CandidateName</td>
+                            <td>@candidate.Description</td>
+                            <td>@candidate.TotalVotes.ToString("#,##0")</td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="7" class="text-center fw-bold text-muted">No Records Found</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+<br>
+
+<!-- Include SignalR -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/5.0.11/signalr.min.js"></script>
+<script>
+    var connection = new signalR.HubConnectionBuilder()
+        .withUrl("/electionResultHub") // Must match the Hub route in Startup.cs
+        .build();
+
+    // Start the SignalR connection
+    connection.start()
+        .then(() => console.log('electionResultHub is started. No error found'))
+        .catch(err => console.error("An error has occurred in start(). Error Message: " + err.toString()));
+
+
+
+    // Listen for real-time updates from the server
+    connection.on("UpdateElectionResultView", function () {
+        @{TempData["infoMessage"] = "Here is the latest results";}
+        location.reload();
+    });
+</script>

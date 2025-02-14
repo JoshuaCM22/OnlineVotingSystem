@@ -1,0 +1,68 @@
+﻿
+@{
+    ViewData["Title"] = "Candidate Management";
+}
+
+
+@model IEnumerable<OnlineVotingSystem.Models.ViewModels.CandidateViewModel>
+
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <h2 class="fw-bold">Candidate Management (@Model.Count())</h2>
+    </div>
+    <br>
+
+    <a asp-action="CreateNewCandidate" class="btn btn-primary btn-md mb-3">Create New Candidate</a>
+
+    <div class="table-responsive">
+        <table class="table table-hover table-bordered text-center align-middle">
+            <thead style="background-color: #000; color: #fff;">
+                <tr>
+                    <th style="width: 13%;">Candidate ID</th>
+                    <th>Candidate Name</th>
+                    <th>Description</th>
+                    <th>Election Name</th>
+                    <th style="width: 20%;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    @foreach (var candidate in Model)
+                    {
+                        <tr>
+                            <td>@candidate.ID</td>
+                            <td>@candidate.Name</td>
+                            <td>@candidate.Description</td>
+                            <td>@candidate.ElectionName</td>
+
+
+                            @if (candidate.HasVoter)
+                            {
+                                <td class="disabled-action">
+                                    ⚠ You cannot edit this candidate because its election contains voters.
+                                </td>
+                            }
+                            else
+                            {
+                                <td>
+                                    <a href="@Url.Action("EditCandidate", "Admin", new { candidateId = candidate.ID })" class="btn btn-primary btn-md me-2">Edit</a>
+                                    <a href="@Url.Action("DeleteCandidate", "Admin", new { candidateId = candidate.ID })" class="btn btn-danger btn-md">Delete</a>
+                                </td>
+                            }
+
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="7" class="text-center fw-bold text-muted">No Records Found</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+<br>
