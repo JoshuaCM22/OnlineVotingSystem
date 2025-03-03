@@ -17,16 +17,29 @@ namespace OnlineVotingSystem.Models.DataAccessLayer
             _dbContext = dbContext;
         }
 
-        public async Task<List<Election>> GetElectionList()
+        public async Task<List<Election>> GetElectionList(DateTime fromDate, DateTime toDate)
         {
             DateTime currentDateTime = DateTime.Now;
-            return await _dbContext.Elections.Where(e => e.StartDateTime <= currentDateTime).ToListAsync();
+            return await _dbContext.Elections.Where(x => x.StartDateTime <= currentDateTime && x.DateTimeCreated.Date >= fromDate.Date && x.DateTimeCreated.Date <= toDate.Date).ToListAsync();
+        }
+
+        public async Task<string> GetElectionStatus(int electionID)
+        {
+            var dateTimeToday = DateTime.Now;
+            var election = await _dbContext.Elections.Where(x => x.Id == electionID).SingleOrDefaultAsync();
+            DateTime startDate = election.StartDateTime;
+            DateTime endDate = election.EndDateTime;
+            if (startDate > dateTimeToday) return "Upcoming";
+            else if (startDate <= dateTimeToday && endDate >= dateTimeToday) return "Ongoing";
+            else if (endDate < dateTimeToday) return "Completed";
+            else throw new Exception("Incorrect Election Status");
         }
 
         public async Task<List<Candidate>> GetCandidateList(int electionID)
         {
             return await _dbContext.Candidates.Where(x => x.ElectionId == electionID).ToListAsync();
         }
+
 
         public async Task<string> GetElectionName(int electionID)
         {

@@ -28,6 +28,18 @@ namespace OnlineVotingSystem.Models.DataAccessLayer
             return await _dbContext.Candidates.Where(x => x.ElectionId == electionID).ToListAsync();
         }
 
+        public async Task<string> GetElectionStatus(int electionID)
+        {
+            var dateTimeToday = DateTime.Now;
+            var election = await _dbContext.Elections.Where(x => x.Id == electionID).SingleOrDefaultAsync();
+            DateTime startDate = election.StartDateTime;
+            DateTime endDate = election.EndDateTime;
+            if (startDate > dateTimeToday) return "Upcoming";
+            else if (startDate <= dateTimeToday && endDate >= dateTimeToday) return "Ongoing";
+            else if (endDate < dateTimeToday) return "Completed";
+            else throw new Exception("Incorrect Election Status");
+        }
+
         public async Task<string> GetElectionName(int electionID)
         {
             return (await _dbContext.Elections.Where(x => x.Id == electionID).SingleOrDefaultAsync()).Name;
@@ -38,14 +50,18 @@ namespace OnlineVotingSystem.Models.DataAccessLayer
             return (await _dbContext.Candidates.Where(x => x.Id == candidateID).SingleOrDefaultAsync()).Name;
         }
 
-        public async Task<List<Vote>> GetVotesList(int userID)
+        public async Task<List<Vote>> GetVotesList(int userID, DateTime fromDate, DateTime toDate)
         {
-          return await _dbContext.Votes.Where(x => x.UserId == userID).OrderByDescending(x => x.Id).ToListAsync();
+            return await _dbContext.Votes
+                     .Where(x => x.UserId == userID && x.DateTimeCreated.Date >= fromDate.Date && x.DateTimeCreated.Date <= toDate.Date)
+                      .OrderByDescending(x => x.Id).ToListAsync();
         }
 
-        public async Task<List<Vote>> GetVotesList(int userID, int electionID)
+        public async Task<List<Vote>> GetVotesList(int userID, int electionID, DateTime fromDate, DateTime toDate)
         {
-            return await _dbContext.Votes.Where(x => x.UserId == userID && x.ElectionId == electionID).OrderByDescending(x => x.Id).ToListAsync();
+            return await _dbContext.Votes
+                .Where(x => x.UserId == userID && x.ElectionId == electionID && x.DateTimeCreated.Date >= fromDate.Date && x.DateTimeCreated.Date <= toDate.Date)
+                .OrderByDescending(x => x.Id).ToListAsync();
         }
 
         public async Task<int> GetUserID(string username)
@@ -66,9 +82,13 @@ namespace OnlineVotingSystem.Models.DataAccessLayer
 
         public async Task<bool> IsVoted(string username, int electionID)
         {
-            int userID = await GetUserID(username);
-            int count = await _dbContext.Votes.Where(x => x.UserId == userID && x.ElectionId == electionID).CountAsync();
-            return (count > 0);
+            var isVoted = await (from u in _dbContext.Users
+                                 join v in _dbContext.Votes
+                                 on u.Id equals v.UserId
+                                 where u.Username == username && v.ElectionId == electionID
+                                 select v).AnyAsync(); 
+
+            return isVoted;
         }
 
         // Dispose this context when this repository is no longer needed. To avoid increased memory usage.

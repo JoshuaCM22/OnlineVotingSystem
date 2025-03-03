@@ -17,6 +17,7 @@ namespace OnlineVotingSystem.Models.DatabaseModels
         public string Name { get; set; }
         public DateTime StartDateTime { get; set; }
         public DateTime EndDateTime { get; set; }
+        public DateTime DateTimeCreated { get; set; }
 
         public virtual ICollection<Candidate> Candidates { get; set; }
         public virtual ICollection<Vote> Votes { get; set; }

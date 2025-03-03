@@ -8,7 +8,6 @@ using OnlineVotingSystem.Models.ViewModels.Voter;
 using OnlineVotingSystem.SignalR.Hubs;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace OnlineVotingSystem.Controllers
@@ -62,7 +61,7 @@ namespace OnlineVotingSystem.Controllers
         {
             if (!User.Identity.IsAuthenticated) return RedirectToAction("login", "account");
             var electionID = HttpContext.Session.GetInt32("Selected_ElectionID");
-            if (electionID == null) throw new Exception("electionID is null");
+            if (electionID == null) return RedirectToAction("election-list", "voter");
 
             List<CandidateViewModel> candidateList = null;
             try
@@ -101,12 +100,14 @@ namespace OnlineVotingSystem.Controllers
 
         [Route("your-voting-history")]
         [HttpGet]
-        public async Task<IActionResult> YourVotingHistory(int electionID)
+        public async Task<IActionResult> YourVotingHistory(int electionID, DateTime? fromDate, DateTime? toDate)
         {
             List<VotedHistoryViewModel> votedHistory = null;
             try
             {
-                votedHistory = await _voterService.GetVotedHistory(User.Identity.Name, electionID);
+                if (!fromDate.HasValue) fromDate = DateTime.Now.AddMonths(-1);
+                if (!toDate.HasValue) toDate = DateTime.Now;
+                votedHistory = await _voterService.GetVotedHistory(User.Identity.Name, electionID, fromDate.Value, toDate.Value);
             }
             catch (Exception ex)
             {

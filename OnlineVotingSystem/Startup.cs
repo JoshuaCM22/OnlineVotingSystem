@@ -64,6 +64,10 @@ namespace OnlineVotingSystem
             });
 
             services.AddDistributedMemoryCache(); // Required for session storage
+
+#if DEBUG
+            services.AddControllersWithViews().AddRazorRuntimeCompilation();
+#endif
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -90,6 +94,7 @@ namespace OnlineVotingSystem
 
             // Enable Session Middleware
             app.UseSession();
+
 
             app.UseEndpoints(endpoints =>
             {

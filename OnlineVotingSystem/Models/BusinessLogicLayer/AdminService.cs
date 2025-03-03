@@ -19,45 +19,63 @@ namespace OnlineVotingSystem.Models.BusinessLogicLayer
             _adminRepository = adminRepository;
         }
 
-        public async Task<DashboardViewModel> GetDashboardCounts()
+        public async Task<DashboardViewModel> GetDashboardCounts(DateTime fromDate, DateTime toDate)
         {
             DashboardViewModel dashboardViewModel = new DashboardViewModel();
-            dashboardViewModel.TotalElections = await _adminRepository.GetTotalElections();
-            dashboardViewModel.TotalCandidates = await _adminRepository.GetTotalCandidates();
-            dashboardViewModel.TotalVoters = await _adminRepository.GetTotalVoters();
+            dashboardViewModel.AllElections = await _adminRepository.GetTotalElections(fromDate, toDate);
+            dashboardViewModel.AllCandidates = await _adminRepository.GetTotalCandidates(fromDate, toDate);
+            dashboardViewModel.AllVoters = await _adminRepository.GetTotalVoters(fromDate, toDate);
+            dashboardViewModel.UpcomingElections = await _adminRepository.GetTotalUpcomingElections(fromDate, toDate);
+            dashboardViewModel.OngoingElections = await _adminRepository.GetTotalOngoingElections(fromDate, toDate);
+            dashboardViewModel.CompletedElections = await _adminRepository.GetTotalCompletedElections(fromDate, toDate);
             return dashboardViewModel;
         }
 
-        public async Task<List<ElectionViewModel>> GetElectionList()
+        public async Task<List<ElectionViewModel>> GetElectionList(DateTime fromDate, DateTime toDate, int statusId)
         {
             var response = new List<ElectionViewModel>();
-            foreach (var item in await _adminRepository.GetElectionList())
+            var elections = await _adminRepository.GetElectionList(fromDate, toDate);
+
+            if (statusId < 0) throw new ArgumentException("The statusId cannot be less than zero.");
+
+            if (statusId > 0)
+            {
+                var dateTimeToday = DateTime.Now;
+                if (statusId == 1) elections = elections.Where(x => x.StartDateTime > dateTimeToday).ToList(); // 1 = Upcoming
+                else if (statusId == 2) elections = elections.Where(x => x.StartDateTime <= dateTimeToday && x.EndDateTime >= dateTimeToday).ToList(); // 2 = Ongoing
+                else if (statusId == 3) elections = elections.Where(x => x.EndDateTime < dateTimeToday).ToList(); // 3 = Completed
+            }
+
+            foreach (var item in elections)
             {
                 var electionViewModel = new ElectionViewModel();
                 electionViewModel.ID = item.Id;
-                electionViewModel.Name = item.Name;
+                electionViewModel.Name = item.Name.Trim();
                 electionViewModel.StartDateTime = item.StartDateTime;
                 electionViewModel.EndDateTime = item.EndDateTime;
-                electionViewModel.HasVoter = await _adminRepository.HasVoter(electionViewModel.ID);
+                electionViewModel.Status = await _adminRepository.GetElectionStatus(electionViewModel.ID);
                 response.Add(electionViewModel);
             }
             return response;
         }
 
-        public async Task<List<CandidateViewModel>> GetCandidateList()
+        public async Task<List<CandidateViewModel>> GetCandidateList(DateTime fromDate, DateTime toDate, int statusId)
         {
-            var response = new List<CandidateViewModel>();
-            var candidates = await _adminRepository.GetCandidateList();
+            if (statusId < 0) throw new ArgumentException("The statusId cannot be less than zero.");
 
+            var response = new List<CandidateViewModel>();
+            var candidates = await _adminRepository.GetCandidateList(fromDate, toDate, statusId);
+
+       
             foreach (var item in candidates)
             {
                 var candidateViewModel = new CandidateViewModel();
                 candidateViewModel.ID = item.Id;
-                candidateViewModel.Name = item.Name;
-                candidateViewModel.Description = item.Description;
+                candidateViewModel.Name = item.Name.Trim();
+                candidateViewModel.Description = item.Description.Trim();
                 candidateViewModel.ElectionID = item.ElectionId;
-                candidateViewModel.HasVoter = await _adminRepository.HasVoter(candidateViewModel.ElectionID);
-                candidateViewModel.ElectionName = await _adminRepository.GetElectionName(candidateViewModel.ElectionID);
+                candidateViewModel.ElectionStatus = (await _adminRepository.GetElectionStatus(item.ElectionId)).Trim();
+                candidateViewModel.ElectionName = (await _adminRepository.GetElectionName(candidateViewModel.ElectionID)).Trim();
                 response.Add(candidateViewModel);
             }
 
@@ -66,9 +84,9 @@ namespace OnlineVotingSystem.Models.BusinessLogicLayer
 
         public async Task CreateNewElection(ElectionViewModel electionViewModel)
         {
-            if (String.IsNullOrEmpty(electionViewModel.Name.Trim())) throw new Exception("Election Name is empty or null.");
-            else if (DateTime.MinValue == electionViewModel.StartDateTime) throw new Exception("The Start Date Time is not assigned.");
-            else if (DateTime.MinValue == electionViewModel.EndDateTime) throw new Exception("The End Date Time is not assigned.");
+            if (String.IsNullOrEmpty(electionViewModel.Name.Trim())) throw new ArgumentException("The Name cannot be null or empty string.");
+            else if (DateTime.MinValue == electionViewModel.StartDateTime) throw new ArgumentException("The StartDateTime cannot use the default date time value.");
+            else if (DateTime.MinValue == electionViewModel.EndDateTime) throw new ArgumentException("The EndDateTime cannot use the default date time value.");
 
             var election = new Election();
             election.Name = electionViewModel.Name.Trim();
@@ -79,6 +97,8 @@ namespace OnlineVotingSystem.Models.BusinessLogicLayer
 
         public async Task<ElectionViewModel> GetElectionByID(int electionID)
         {
+            if (electionID <= 0) throw new ArgumentException("The electionID cannot be less than or equal to zero.");
+
             var election = await _adminRepository.GetElectionByID(electionID);
             var electionViewModel = new ElectionViewModel();
             electionViewModel.ID = electionID;
@@ -90,6 +110,11 @@ namespace OnlineVotingSystem.Models.BusinessLogicLayer
 
         public async Task UpdateElection(ElectionViewModel electionViewModel)
         {
+            if (electionViewModel.ID <= 0) throw new ArgumentException("The ID cannot be less than or equal to zero.");
+            else if (String.IsNullOrEmpty(electionViewModel.Name.Trim())) throw new ArgumentException("The Name cannot be null or empty string.");
+            else if (DateTime.MinValue == electionViewModel.StartDateTime) throw new ArgumentException("The StartDateTime cannot use the default date time value.");
+            else if (DateTime.MinValue == electionViewModel.EndDateTime) throw new ArgumentException("The EndDateTime cannot use the default date time value.");
+
             var election = new Election();
             election.Id = electionViewModel.ID;
             election.Name = electionViewModel.Name.Trim();
@@ -100,6 +125,11 @@ namespace OnlineVotingSystem.Models.BusinessLogicLayer
 
         public async Task DeleteElection(ElectionViewModel electionViewModel)
         {
+            if (electionViewModel.ID <= 0) throw new ArgumentException("The ID cannot be less than or equal to zero.");
+            else if (String.IsNullOrEmpty(electionViewModel.Name.Trim())) throw new ArgumentException("The Name cannot be null or empty string.");
+            else if (DateTime.MinValue == electionViewModel.StartDateTime) throw new ArgumentException("The StartDateTime cannot use the default date time value.");
+            else if (DateTime.MinValue == electionViewModel.EndDateTime) throw new ArgumentException("The EndDateTime cannot use the default date time value.");
+
             var election = new Election();
             election.Id = electionViewModel.ID;
             election.Name = electionViewModel.Name.Trim();
@@ -108,24 +138,36 @@ namespace OnlineVotingSystem.Models.BusinessLogicLayer
             await _adminRepository.DeleteElection(election);
         }
 
-        public async Task<IEnumerable<SelectListItem>> GetAllElections()
+        public async Task<IEnumerable<SelectListItem>> GetUpComingElections()
         {
-            var elections = await _adminRepository.GetElectionList();
+            var elections = await _adminRepository.GetUpComingElectionList();
 
             var electionSelectList = elections.Select(x => new SelectListItem
             {
                 Value = x.Id.ToString(),
-                Text = x.Name
+                Text = x.Name.Trim()
             });
 
             return electionSelectList;
         }
 
+        public IEnumerable<SelectListItem> GetAllElectionStatuses()
+        {
+            return new List<SelectListItem>
+            {
+                new SelectListItem { Value = "0", Text = "All" },
+                new SelectListItem { Value = "1", Text = "Upcoming" },
+                new SelectListItem { Value = "2", Text = "Ongoing" },
+                new SelectListItem { Value = "3", Text = "Completed" }
+            };
+        }
+
+
         public async Task CreateNewCandidate(CandidateViewModel candidateViewModel)
         {
-            if (String.IsNullOrEmpty(candidateViewModel.Name.Trim())) throw new Exception("Candidate Name is empty or null.");
-            else if (String.IsNullOrEmpty(candidateViewModel.Description.Trim())) throw new Exception("Description is empty or null.");
-            else if (candidateViewModel.ElectionID <= 0) throw new Exception("Election ID must be greater than 0.");
+            if (String.IsNullOrEmpty(candidateViewModel.Name)) throw new ArgumentException("The Name cannot be null or empty string.");
+            else if (String.IsNullOrEmpty(candidateViewModel.Description)) throw new ArgumentException("The Description cannot be null or empty string.");
+            else if (candidateViewModel.ElectionID <= 0) throw new ArgumentException("The ElectionID cannot be less than or equal to zero.");
 
             var candidate = new Candidate();
             candidate.Name = candidateViewModel.Name.Trim();
@@ -136,17 +178,24 @@ namespace OnlineVotingSystem.Models.BusinessLogicLayer
 
         public async Task<CandidateViewModel> GetCandidateByID(int candidateID)
         {
+            if (candidateID <= 0) throw new ArgumentException("The candidateID cannot be less than or equal to zero.");
+
             var candidate = await _adminRepository.GetCandidateByID(candidateID);
             var candidateViewModel = new CandidateViewModel();
             candidateViewModel.ID = candidateID;
-            candidateViewModel.Name = candidate.Name;
-            candidateViewModel.Description = candidate.Description;
+            candidateViewModel.Name = candidate.Name.Trim();
+            candidateViewModel.Description = candidate.Description.Trim();
             candidateViewModel.ElectionID = candidate.ElectionId;
             return candidateViewModel;
         }
 
         public async Task UpdateCandidate(CandidateViewModel candidateViewModel)
         {
+            if (candidateViewModel.ID <= 0) throw new ArgumentException("The ID cannot be less than or equal to zero.");
+            else if (String.IsNullOrEmpty(candidateViewModel.Name)) throw new ArgumentException("The Name cannot be null or empty string.");
+            else if (String.IsNullOrEmpty(candidateViewModel.Description)) throw new ArgumentException("The Description cannot be null or empty string.");
+            else if (candidateViewModel.ElectionID <= 0) throw new ArgumentException("The ElectionID cannot be less than or equal to zero.");
+
             var candidate = new Candidate();
             candidate.Id = candidateViewModel.ID;
             candidate.Name = candidateViewModel.Name.Trim();
@@ -157,6 +206,11 @@ namespace OnlineVotingSystem.Models.BusinessLogicLayer
 
         public async Task DeleteCandidate(CandidateViewModel candidateViewModel)
         {
+            if (candidateViewModel.ID <= 0) throw new ArgumentException("The ID cannot be less than or equal to zero.");
+            else if (String.IsNullOrEmpty(candidateViewModel.Name)) throw new ArgumentException("The Name cannot be null or empty string.");
+            else if (String.IsNullOrEmpty(candidateViewModel.Description)) throw new ArgumentException("The Description cannot be null or empty string.");
+            else if (candidateViewModel.ElectionID <= 0) throw new ArgumentException("The ElectionID cannot be less than or equal to zero.");
+
             var candidate = new Candidate();
             candidate.Id = candidateViewModel.ID;
             candidate.Name = candidateViewModel.Name.Trim();

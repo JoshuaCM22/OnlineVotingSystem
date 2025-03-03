@@ -1,5 +1,6 @@
 ﻿using OnlineVotingSystem.Models.Interfaces;
 using OnlineVotingSystem.Models.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -16,14 +17,15 @@ namespace OnlineVotingSystem.Models.BusinessLogicLayer
         }
 
 
-        public async Task<List<ElectionViewModel>> GetElectionList()
+        public async Task<List<ElectionViewModel>> GetElectionList(DateTime fromDate, DateTime toDate)
         {
             var response = new List<ElectionViewModel>();
-            foreach (var item in await _resultRepository.GetElectionList())
+            foreach (var item in await _resultRepository.GetElectionList(fromDate, toDate))
             {
                 var electionViewModel = new ElectionViewModel();
                 electionViewModel.ID = item.Id;
-                electionViewModel.Name = item.Name;
+                electionViewModel.Name = item.Name.Trim();
+                electionViewModel.Status = await _resultRepository.GetElectionStatus(electionViewModel.ID);
                 electionViewModel.StartDateTime = item.StartDateTime;
                 electionViewModel.EndDateTime = item.EndDateTime;
                 response.Add(electionViewModel);
@@ -33,6 +35,8 @@ namespace OnlineVotingSystem.Models.BusinessLogicLayer
 
         public async Task<List<ResultViewModel>> GetCandidateList(int electionID)
         {
+            if (electionID <= 0) throw new ArgumentException("The electionID cannot be less than or equal to zero.");
+
             var response = new List<ResultViewModel>();
             var candidates = await _resultRepository.GetCandidateList(electionID);
             string electionName = await _resultRepository.GetElectionName(electionID);
@@ -54,6 +58,8 @@ namespace OnlineVotingSystem.Models.BusinessLogicLayer
 
         public async Task<string> GetElectionName(int electionID)
         {
+            if (electionID <= 0) throw new ArgumentException("The electionID cannot be less than or equal to zero.");
+
             return (await _resultRepository.GetElectionName(electionID)).Trim();
         }
     }

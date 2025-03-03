@@ -13,6 +13,7 @@ namespace OnlineVotingSystem.Models.ViewModels
         [Display(Name = "Election Name")]
         public string Name { get; set; }
 
+        public string Status { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:yyyy-MM-ddTHH:mm}", ApplyFormatInEditMode = true)]
         [Required(ErrorMessage = "Start Date Time is required")]

@@ -23,6 +23,7 @@ namespace OnlineVotingSystem.Models.ViewModels
         public int ElectionID { get; set; }
 
         public string ElectionName { get; set; }
-        public bool HasVoter { get; set; }
+
+        public string ElectionStatus { get; set; }     
     }
 }

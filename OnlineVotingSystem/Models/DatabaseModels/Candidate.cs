@@ -16,6 +16,7 @@ namespace OnlineVotingSystem.Models.DatabaseModels
         public string Name { get; set; }
         public string Description { get; set; }
         public int ElectionId { get; set; }
+        public DateTime DateTimeCreated { get; set; }
 
         public virtual Election Election { get; set; }
         public virtual ICollection<Vote> Votes { get; set; }

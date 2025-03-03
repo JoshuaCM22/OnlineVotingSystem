@@ -22,12 +22,14 @@ namespace OnlineVotingSystem.Controllers
 
         [Route("dashboard")]
         [HttpGet]
-        public async Task<IActionResult> Dashboard()
+        public async Task<IActionResult> Dashboard(DateTime? fromDate, DateTime? toDate)
         {
             DashboardViewModel viewModel = null;
             try
             {
-                viewModel = await _adminService.GetDashboardCounts();
+                if (!fromDate.HasValue) fromDate = DateTime.Now.AddMonths(-1);
+                if (!toDate.HasValue) toDate = DateTime.Now;
+                viewModel = await _adminService.GetDashboardCounts(fromDate.Value, toDate.Value);
             }
             catch (Exception ex)
             {
@@ -40,14 +42,17 @@ namespace OnlineVotingSystem.Controllers
 
         [Route("election-list")]
         [HttpGet]
-        public async Task<IActionResult> ElectionList()
+        public async Task<IActionResult> ElectionList(DateTime? fromDate, DateTime? toDate, int? statusId)
         {
             if (!User.Identity.IsAuthenticated) return RedirectToAction("login", "account");
 
             List<ElectionViewModel> electionList = null;
             try
             {
-                electionList = await _adminService.GetElectionList();
+                if (!fromDate.HasValue) fromDate = DateTime.Now.AddMonths(-1);
+                if (!toDate.HasValue) toDate = DateTime.Now;
+                ViewBag.StatusList =  _adminService.GetAllElectionStatuses();
+                electionList = await _adminService.GetElectionList(fromDate.Value, toDate.Value, statusId ?? 0);
             }
             catch (Exception ex)
             {
@@ -155,14 +160,17 @@ namespace OnlineVotingSystem.Controllers
 
         [Route("candidate-list")]
         [HttpGet]
-        public async Task<IActionResult> CandidateList()
+        public async Task<IActionResult> CandidateList(DateTime? fromDate, DateTime? toDate, int? statusId)
         {
             if (!User.Identity.IsAuthenticated) return RedirectToAction("login", "account");
 
             List<CandidateViewModel> candidateList = null;
             try
             {
-                candidateList = await _adminService.GetCandidateList();
+                if (!fromDate.HasValue) fromDate = DateTime.Now.AddMonths(-1);
+                if (!toDate.HasValue) toDate = DateTime.Now;
+                ViewBag.StatusList = _adminService.GetAllElectionStatuses();
+                candidateList = await _adminService.GetCandidateList(fromDate.Value, toDate.Value, statusId ?? 0);
             }
             catch (Exception ex)
             {
@@ -178,7 +186,7 @@ namespace OnlineVotingSystem.Controllers
             if (!User.Identity.IsAuthenticated) return RedirectToAction("login", "account");
             try
             {
-                ViewBag.ElectionList = await _adminService.GetAllElections();
+                ViewBag.ElectionList = await _adminService.GetUpComingElections();
             }
             catch (Exception ex)
             {
@@ -215,7 +223,7 @@ namespace OnlineVotingSystem.Controllers
             try
             {
                 candidateViewModel = await _adminService.GetCandidateByID(candidateId);
-                ViewBag.ElectionList = await _adminService.GetAllElections();
+                ViewBag.ElectionList = await _adminService.GetUpComingElections();
             }
             catch (Exception ex)
             {
@@ -253,7 +261,6 @@ namespace OnlineVotingSystem.Controllers
             try
             {
                 candidateViewModel = await _adminService.GetCandidateByID(candidateId);
-                ViewBag.ElectionList = await _adminService.GetAllElections();
             }
             catch (Exception ex)
             {

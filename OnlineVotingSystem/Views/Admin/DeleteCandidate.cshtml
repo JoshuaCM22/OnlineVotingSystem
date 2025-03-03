@@ -4,7 +4,7 @@
 
 @model OnlineVotingSystem.Models.ViewModels.CandidateViewModel
 
-<h2 class="fw-bold">Delete Candidate</h2>
+<h2 class="fw-bold">Delete Candidate Confirmation</h2>
 
 <form asp-action="DeleteCandidate" method="post">
     @Html.AntiForgeryToken()
@@ -41,11 +41,14 @@
 
 
         <br />
+
         <div class="form-group">
-            <div class="col-md-offset-2 col-md-10">
-                <button type="submit" class="btn btn-primary">Delete</button>
-                <a asp-action="CandidateList" class="btn btn-danger">Cancel</a>
-            </div>
+            <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-trash"></i> Delete
+            </button>
+            <a asp-action="CandidateList" class="btn btn-danger">
+                <i class="fa-solid fa-times"></i> Cancel
+            </a>
         </div>
     </div>
 </form>

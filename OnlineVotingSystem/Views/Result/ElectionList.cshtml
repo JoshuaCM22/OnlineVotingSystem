@@ -1,6 +1,15 @@
 ﻿
 @{
     ViewData["Title"] = "View Election Results";
+
+
+    string fromDateValue = Context.Request.Query.ContainsKey("fromDate")
+        ? Context.Request.Query["fromDate"].ToString()
+        : DateTime.Now.AddMonths(-12).ToString("yyyy-MM-dd");
+
+    string toDateValue = Context.Request.Query.ContainsKey("toDate")
+        ? Context.Request.Query["toDate"].ToString()
+        : DateTime.Now.ToString("yyyy-MM-dd");
 }
 
 
@@ -8,19 +17,45 @@
 
 
 <div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center">
-        <h2 class="fw-bold">View Election Results (@Model.Count())</h2>
+    <div class="text-center">
+        <h2 class="fw-bold"><i class="fa-solid fa-chart-pie"></i> View Election Results</h2>
     </div>
-    <br>
+    <hr>
 
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex flex-wrap justify-content-between align-items-end mb-3">
+                <form method="get" asp-action="ElectionList" asp-controller="Result" class="row g-2 w-100">
+                    <div class="col-12 col-sm-12 col-md-3">
+                        <label for="fromDate" class="form-label">From Date:</label>
+                        <input type="date" id="fromDate" name="fromDate" class="form-control" value="@fromDateValue">
+                    </div>
+                    <div class="col-12 col-sm-12 col-md-3">
+                        <label for="toDate" class="form-label">To Date:</label>
+                        <input type="date" id="toDate" name="toDate" class="form-control" value="@toDateValue">
+                    </div>
+
+                    <div class="col-12 col-sm-12 col-md-3 d-flex align-items-end mt-3">
+
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-search" style="margin-right: 5px;"></i> Search
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <p class="text-center font-weight-bolder">Total Rows: @Model.Count().ToString("#,##0")</p>
     <div class="table-responsive">
-        <table class="table table-hover table-bordered text-center align-middle">
+        <table id="sortTable" class="table table-hover table-bordered text-center align-middle">
             <thead style="background-color: #000; color: #fff;">
                 <tr>
-                    <th style="width: 13%;">Election ID</th>
-                    <th>Election Name</th>
-                    <th>Start Date Time</th>
-                    <th>End Date Time</th>
+                    <th id="sortTableHeader1" class="sortTableHeader" style="width: 13%;">Election ID</th>
+                    <th id="sortTableHeader2" class="sortTableHeader">Election Name</th>
+                    <th id="sortTableHeader3" class="sortTableHeader">Status</th>
+                    <th id="sortTableHeader4" class="sortTableHeader" style="width: 200px;">Start Date Time</th>
+                    <th id="sortTableHeader5" class="sortTableHeader" style="width: 200px;">End Date Time</th>
                     <th style="width: 15%;">Action</th>
                 </tr>
             </thead>
@@ -29,13 +64,34 @@
                 {
                     @foreach (var election in Model)
                     {
+                        string backgroundColor = "";
+                        string textColor = "";
+                        if (election.Status == "Upcoming")
+                        {
+                            backgroundColor = "yellow";
+                            textColor = "black";
+                        }
+                        else if (election.Status == "Ongoing")
+                        {
+                            backgroundColor = "blue";
+                        }
+                        else if (election.Status == "Completed")
+                        {
+                            backgroundColor = "green";
+                        }
+
+                        if (election.Status == "Ongoing" || election.Status == "Completed") textColor = "white";
+
                         <tr>
                             <td>@election.ID</td>
                             <td>@election.Name</td>
-                            <td>@election.StartDateTime.ToString("MMM dd, yyyy / hh:mm tt")</td>
-                            <td>@election.EndDateTime.ToString("MMM dd, yyyy / hh:mm tt")</td>
+                            <td style="background-color: @backgroundColor; color : @textColor;">@election.Status</td>
+                            <td>@election.StartDateTime.ToString("MM/dd/yyyy hh:mm tt")</td>
+                            <td>@election.EndDateTime.ToString("MM/dd/yyyy hh:mm tt")</td>
                             <td>
-                                <a href="@Url.Action("SetElectionIDSession", "Result", new { id = election.ID })" class="btn btn-primary btn-md">View Result</a>
+                                <a href="@Url.Action("SetElectionIDSession", "Result", new { id = election.ID })" class="btn btn-primary btn-md" style="width: 200px;">
+                                    <i class="fa-solid fa-chart-bar"></i> View Result
+                                </a>
                             </td>
 
                         </tr>

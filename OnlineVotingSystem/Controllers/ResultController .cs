@@ -26,14 +26,16 @@ namespace OnlineVotingSystem.Controllers
 
         [Route("election-list")]
         [HttpGet]
-        public async Task<IActionResult> ElectionList()
+        public async Task<IActionResult> ElectionList(DateTime? fromDate, DateTime? toDate)
         {
             if (!User.Identity.IsAuthenticated) return RedirectToAction("login", "account");
 
             List<ElectionViewModel> electionList = null;
             try
             {
-                electionList = await _resultService.GetElectionList();
+                if (!fromDate.HasValue) fromDate = DateTime.Now.AddMonths(-1);
+                if (!toDate.HasValue) toDate = DateTime.Now;
+                electionList = await _resultService.GetElectionList(fromDate.Value, toDate.Value);
                 HttpContext.Session.Remove("Selected_ElectionID");
             }
             catch (Exception ex)

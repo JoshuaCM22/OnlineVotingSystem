@@ -42,6 +42,10 @@ namespace OnlineVotingSystem.Models.DatabaseModels
             {
                 entity.Property(e => e.Id).HasColumnName("ID");
 
+                entity.Property(e => e.DateTimeCreated)
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("(getdate())");
+
                 entity.Property(e => e.Description)
                     .IsRequired()
                     .HasMaxLength(100);
@@ -64,6 +68,10 @@ namespace OnlineVotingSystem.Models.DatabaseModels
                     .IsUnique();
 
                 entity.Property(e => e.Id).HasColumnName("ID");
+
+                entity.Property(e => e.DateTimeCreated)
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("(getdate())");
 
                 entity.Property(e => e.EndDateTime).HasColumnType("datetime");
 
@@ -94,6 +102,10 @@ namespace OnlineVotingSystem.Models.DatabaseModels
                     .IsUnique();
 
                 entity.Property(e => e.Id).HasColumnName("ID");
+
+                entity.Property(e => e.DateTimeCreated)
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("(getdate())");
 
                 entity.Property(e => e.Password).IsRequired();
 
