@@ -1,1 +1,0 @@
-<p>ASP.NET CORE MVC (C# and Entity Framework with Database First Approach)</p>  
